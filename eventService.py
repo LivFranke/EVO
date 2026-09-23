@@ -1,7 +1,7 @@
 from bson import ObjectId
-from database import events_collection
+from database import eventsCollection
 
-def create_event(title, description, date, location, maxParticipants):
+def createEvent(title, description, date, location, maxParticipants):
     event = {
         "title": title,
         "description": description,
@@ -10,42 +10,37 @@ def create_event(title, description, date, location, maxParticipants):
         "maxParticipants": maxParticipants
     }
 
-    result = events_collection.insert_one(event)
+    result = eventsCollection.insert_one(event)
 
     return result.inserted_id
 
+def getEvents():
+    return list(eventsCollection.find())
 
-def get_events():
-    return list(events_collection.find())
-
-
-def get_event(event_id):
-    return events_collection.find_one({
-        "_id": ObjectId(event_id)
+def getEvent(eventId):
+    return eventsCollection.find_one({
+        "_id": ObjectId(eventId)
     })
 
-
-def search_events(search_text):
-    return list(events_collection.find({
+def searchEvents(searchText):
+    return list(eventsCollection.find({
         "title": {
-            "$regex": search_text,
+            "$regex": searchText,
             "$options": "i"
         }
     }))
 
-
-def update_event(event_id, new_data):
-    result = events_collection.update_one(
-        {"_id": ObjectId(event_id)},
-        {"$set": new_data}
+def updateEvent(eventId, newData):
+    result = eventsCollection.update_one(
+        {"_id": ObjectId(eventId)},
+        {"$set": newData}
     )
 
     return result.modified_count
 
-
-def delete_event(event_id):
-    result = events_collection.delete_one({
-        "_id": ObjectId(event_id)
+def deleteEvent(eventId):
+    result = eventsCollection.delete_one({
+        "_id": ObjectId(eventId)
     })
 
     return result.deleted_count
