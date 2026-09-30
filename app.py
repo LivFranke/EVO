@@ -47,58 +47,14 @@ def apply_styles():
     st.markdown(
         """
         <style>
-            [data-testid="stSidebar"] {
-                display: none;
-            }
-
             .block-container {
                 max-width: 1120px;
                 padding-top: 1rem;
             }
 
-            .app-navbar {
-                position: sticky;
-                top: 0;
-                z-index: 999;
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                gap: 1rem;
-                padding: 0.7rem 1rem;
-                margin-bottom: 1rem;
-                border: 1px solid #d0d0d0;
-                border-radius: 8px;
-                background: #ffffff;
-            }
-
-            .app-brand {
-                font-weight: 700;
-                color: #222222;
-                white-space: nowrap;
-            }
-
-            .nav-links {
-                display: flex;
-                gap: 0.4rem;
-                flex-wrap: wrap;
-                justify-content: flex-end;
-            }
-
-            .nav-link {
-                display: inline-block;
-                padding: 0.45rem 0.75rem;
-                border: 1px solid #c9c9c9;
-                border-radius: 6px;
-                color: #222222 !important;
-                text-decoration: none !important;
-                background: #f8f8f8;
-                font-size: 0.95rem;
-            }
-
-            .nav-link.active {
-                color: #ffffff !important;
-                border-color: #222222;
-                background: #222222;
+            [data-testid="stSidebar"] {
+                border-right: 1px solid #d0d0d0;
+                background: #fbfbfb;
             }
 
             .page-title {
@@ -185,49 +141,15 @@ def rerun_app():
         st.experimental_rerun()
 
 
-def get_query_value(name, default):
-    try:
-        if hasattr(st, "query_params"):
-            value = st.query_params.get(name, default)
-        else:
-            value = st.experimental_get_query_params().get(name, [default])
-
-        if isinstance(value, list):
-            return value[0] if value else default
-
-        return value
-    except Exception:
-        return default
-
-
 def get_current_page(role):
-    page = get_query_value("page", "dashboard")
+    page = st.session_state.get("current_page", "dashboard")
     allowed_pages = [item[0] for item in NAVIGATION[role]]
 
     if page not in allowed_pages:
+        st.session_state["current_page"] = "dashboard"
         return "dashboard"
 
     return page
-
-
-def render_navbar(role, current_page):
-    links = []
-
-    for page_key, label in NAVIGATION[role]:
-        active_class = " active" if page_key == current_page else ""
-        links.append(
-            f'<a class="nav-link{active_class}" href="?page={page_key}">{label}</a>'
-        )
-
-    st.markdown(
-        f"""
-        <div class="app-navbar">
-            <div class="app-brand">EVO EventOrganizer</div>
-            <div class="nav-links">{''.join(links)}</div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
 
 
 def set_feedback(kind, message):
@@ -777,22 +699,24 @@ def show_user_bookings(current_user):
                 )
 
 
-def show_top_controls(role):
+def show_sidebar_controls(role):
     all_users = getUsers()
     admin_users = [user for user in all_users if user.get("role") == "admin"]
     normal_users = [user for user in all_users if user.get("role") == "user"]
 
-    role_column, user_column = st.columns([1, 2])
+    st.sidebar.title("EVO EventOrganizer")
+    st.sidebar.caption("Eventverwaltung")
+    st.sidebar.divider()
 
-    with role_column:
-        selected_role = st.selectbox(
-            "⚙ Rolle",
-            ["ADMIN", "USER"],
-            index=0 if role == "ADMIN" else 1,
-            key="role_select",
-        )
+    selected_role = st.sidebar.selectbox(
+        "⚙ Rolle",
+        ["ADMIN", "USER"],
+        index=0 if role == "ADMIN" else 1,
+        key="role_select",
+    )
 
     if selected_role != role:
+        st.session_state["current_page"] = "dashboard"
         rerun_app()
 
     if selected_role == "ADMIN":
@@ -802,29 +726,48 @@ def show_top_controls(role):
 
     current_user = None
 
-    with user_column:
-        if selected_user_list:
-            current_user = st.selectbox(
-                "👤 Benutzer",
-                selected_user_list,
-                format_func=user_label,
-                key=f"user_select_{selected_role}",
-            )
-        else:
-            st.warning("Es wurden noch keine Benutzer gefunden.")
+    if selected_user_list:
+        current_user = st.sidebar.selectbox(
+            "👤 Benutzer",
+            selected_user_list,
+            format_func=user_label,
+            key=f"user_select_{selected_role}",
+        )
+    else:
+        st.sidebar.warning("Es wurden noch keine Benutzer gefunden.")
 
     return selected_role, current_user
+
+
+def show_sidebar_navigation(role):
+    st.sidebar.divider()
+    st.sidebar.subheader("Navigation")
+
+    current_page = get_current_page(role)
+
+    # Die Navigation bleibt vollständig in der App und nutzt keine Browser-Links.
+    for page_key, label in NAVIGATION[role]:
+        button_type = "primary" if page_key == current_page else "secondary"
+        clicked = st.sidebar.button(
+            label,
+            key=f"nav_{role}_{page_key}",
+            type=button_type,
+            use_container_width=True,
+        )
+
+        if clicked:
+            st.session_state["current_page"] = page_key
+            rerun_app()
+
+    return get_current_page(role)
 
 
 def main():
     apply_styles()
 
     role = st.session_state.get("role_select", "ADMIN")
-    current_page = get_current_page(role)
-
-    render_navbar(role, current_page)
-    role, current_user = show_top_controls(role)
-    current_page = get_current_page(role)
+    role, current_user = show_sidebar_controls(role)
+    current_page = show_sidebar_navigation(role)
 
     show_feedback()
     show_pending_confirmation()

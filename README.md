@@ -71,11 +71,11 @@ http://localhost:8501
 
 ## Bedienungsanleitung
 
-Oben in der Anwendung befindet sich eine horizontale Navigation.
+Links in der Anwendung befindet sich eine feste Navigation.
 Dort kann zwischen den Bereichen wie `Dashboard`, `Events`, `Event erstellen` oder `Meine Buchungen` gewechselt werden.
 Der aktuell ausgewählte Bereich ist dunkel hervorgehoben.
 
-Unter der Navigation kann zuerst die Rolle ausgewählt werden:
+In der linken Navigation kann zuerst die Rolle ausgewählt werden:
 
 - `ADMIN`
 - `USER`
