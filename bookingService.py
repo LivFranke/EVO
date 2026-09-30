@@ -3,6 +3,14 @@ from bson import ObjectId
 
 from database import bookingsCollection, eventsCollection, usersCollection
 
+def getUsers():
+    return list(usersCollection.find())
+
+def getUsersByRole(role):
+    return list(usersCollection.find({
+        "role": role
+    }))
+
 def getBookingCount(eventId):
     return bookingsCollection.count_documents({
         "eventId": ObjectId(eventId)
@@ -67,6 +75,13 @@ def bookEvent(userId, eventId):
 def cancelBooking(userId, eventId):
     result = bookingsCollection.delete_one({
         "userId": ObjectId(userId),
+        "eventId": ObjectId(eventId)
+    })
+
+    return result.deleted_count
+
+def cancelEventBookings(eventId):
+    result = bookingsCollection.delete_many({
         "eventId": ObjectId(eventId)
     })
 
