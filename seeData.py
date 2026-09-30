@@ -1,4 +1,4 @@
-from database import events_collection, users_collection, bookings_collection
+from database import eventsCollection, usersCollection, bookingsCollection
 
 users = [
     {
@@ -108,19 +108,19 @@ events = [
     }
 ]
 
-users_collection.insert_many(users)
-events_collection.insert_many(events)
+usersCollection.insert_many(users)
+eventsCollection.insert_many(events)
 
-lukas = users_collection.find_one({"username": "lukas"})
-sophie = users_collection.find_one({"username": "sophie"})
-jonas = users_collection.find_one({"username": "jonas"})
-lea = users_collection.find_one({"username": "lea"})
+lukas = usersCollection.find_one({"username": "lukas"})
+sophie = usersCollection.find_one({"username": "sophie"})
+jonas = usersCollection.find_one({"username": "jonas"})
+lea = usersCollection.find_one({"username": "lea"})
 
-sommerfest = events_collection.find_one({"title": "Sommerfest"})
-python_workshop = events_collection.find_one({"title": "Workshop Python"})
-teambuilding = events_collection.find_one({"title": "Teambuilding"})
-weihnachtsfeier = events_collection.find_one({"title": "Weihnachtsfeier"})
-fussball = events_collection.find_one({"title": "Fußballturnier"})
+sommerfest = eventsCollection.find_one({"title": "Sommerfest"})
+python_workshop = eventsCollection.find_one({"title": "Workshop Python"})
+teambuilding = eventsCollection.find_one({"title": "Teambuilding"})
+weihnachtsfeier = eventsCollection.find_one({"title": "Weihnachtsfeier"})
+fussball = eventsCollection.find_one({"title": "Fußballturnier"})
 
 bookings = [
     {
@@ -165,7 +165,7 @@ bookings = [
     }
 ]
 
-bookings_collection.insert_many(bookings)
+bookingsCollection.insert_many(bookings)
 
 print("Benutzer wurden eingefügt.")
 print("Events wurden eingefügt.")
