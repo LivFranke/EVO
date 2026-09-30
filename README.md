@@ -71,7 +71,11 @@ http://localhost:8501
 
 ## Bedienungsanleitung
 
-In der Seitenleiste kann zuerst die Rolle ausgewählt werden:
+Oben in der Anwendung befindet sich eine horizontale Navigation.
+Dort kann zwischen den Bereichen wie `Dashboard`, `Events`, `Event erstellen` oder `Meine Buchungen` gewechselt werden.
+Der aktuell ausgewählte Bereich ist dunkel hervorgehoben.
+
+Unter der Navigation kann zuerst die Rolle ausgewählt werden:
 
 - `ADMIN`
 - `USER`
@@ -98,12 +102,12 @@ Mögliche Funktionen:
 
 ### Neues Event erstellen
 
-Im Tab `Neues Event` können Titel, Beschreibung, Datum, Ort, Stadt, Raum und maximale Teilnehmerzahl eingegeben werden.
+Im Bereich `Event erstellen` können Titel, Beschreibung, Datum, Ort, Stadt, Raum und maximale Teilnehmerzahl eingegeben werden.
 Mit `Event erstellen` wird das Event gespeichert.
 
 ### Event bearbeiten
 
-Im Tab `Events` wird zuerst ein Event ausgewählt.
+Im Bereich `Events` kann ein Event aufgeklappt werden.
 Danach können die Daten im Formular geändert und mit `Änderungen speichern` gespeichert werden.
 
 Die maximale Teilnehmerzahl kann nicht kleiner als die bereits vorhandene Anzahl an Buchungen sein.
@@ -132,12 +136,12 @@ Mögliche Funktionen:
 
 ### Event buchen
 
-Im Tab `Events` kann ein freies Event über den Button `Event buchen` gebucht werden.
+Im Bereich `Events` kann ein freies Event über den Button `Event buchen` gebucht werden.
 Wenn keine freien Plätze mehr vorhanden sind, wird das Event als `Ausgebucht` angezeigt.
 
 ### Eigene Buchungen anzeigen
 
-Im Tab `Meine Buchungen` sieht der ausgewählte User nur seine eigenen Buchungen.
+Im Bereich `Meine Buchungen` sieht der ausgewählte User nur seine eigenen Buchungen.
 Dort können Buchungen auch wieder storniert werden.
 
 ## Kurze technische Dokumentation
