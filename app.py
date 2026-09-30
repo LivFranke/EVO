@@ -70,13 +70,6 @@ def apply_styles():
                 font-weight: 700;
             }
 
-            .confirm-box {
-                padding: 1rem;
-                margin: 1rem 0;
-                border: 1px solid #d89b00;
-                border-radius: 8px;
-                background: #fff8e6;
-            }
         </style>
         """,
         unsafe_allow_html=True,
@@ -165,18 +158,58 @@ def show_feedback():
     if feedback is None:
         return
 
-    if feedback["kind"] == "success":
-        st.success(feedback["message"])
-    elif feedback["kind"] == "error":
-        st.error(feedback["message"])
-    else:
-        st.info(feedback["message"])
+    toast_icons = {
+        "success": "✅",
+        "error": "⚠️",
+        "info": "ℹ️",
+    }
+
+    if hasattr(st, "toast"):
+        st.toast(feedback["message"], icon=toast_icons.get(feedback["kind"], "ℹ️"))
+        return
+
+    colors = {
+        "success": "#2e7d32",
+        "error": "#c62828",
+        "info": "#1565c0",
+    }
+    color = colors.get(feedback["kind"], colors["info"])
+
+    st.markdown(
+        f"""
+        <div style="
+            position: fixed;
+            right: 1rem;
+            bottom: 1rem;
+            z-index: 9999;
+            max-width: 22rem;
+            padding: 0.75rem 1rem;
+            border-left: 4px solid {color};
+            border-radius: 6px;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+            background: white;
+            color: #222;
+            animation: evo-toast-fade 4s forwards;
+        ">
+            {toast_icons.get(feedback["kind"], "ℹ️")} {escape(feedback["message"])}
+        </div>
+        <style>
+            @keyframes evo-toast-fade {{
+                0%, 80% {{ opacity: 1; transform: translateY(0); }}
+                100% {{ opacity: 0; transform: translateY(0.4rem); }}
+            }}
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
-def ask_confirmation(action, message, payload):
+def ask_confirmation(action, title, message, confirm_label, payload):
     st.session_state["pending_confirmation"] = {
         "action": action,
+        "title": title,
         "message": message,
+        "confirm_label": confirm_label,
         "payload": payload,
     }
     rerun_app()
@@ -188,28 +221,40 @@ def show_pending_confirmation():
     if pending is None:
         return
 
-    # Zentrale Rückfrage für alle Aktionen, die Daten verändern.
-    st.markdown(
-        f"""
-        <div class="confirm-box">
-            <strong>Bestätigung erforderlich</strong><br>
-            {escape(pending["message"])}
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    def render_confirmation_content():
+        st.write(pending["message"])
 
-    confirm_column, cancel_column, _ = st.columns([1, 1, 4])
+        cancel_column, confirm_column = st.columns(2)
 
-    if confirm_column.button("✓ Bestätigen", key="confirm_action"):
-        execute_confirmed_action(pending)
-        st.session_state.pop("pending_confirmation", None)
-        rerun_app()
+        if cancel_column.button(
+            "Abbrechen",
+            key=f"cancel_action_{pending['action']}",
+            use_container_width=True,
+        ):
+            st.session_state.pop("pending_confirmation", None)
+            rerun_app()
 
-    if cancel_column.button("✕ Abbrechen", key="cancel_action"):
-        st.session_state.pop("pending_confirmation", None)
-        set_feedback("info", "Aktion wurde abgebrochen.")
-        rerun_app()
+        if confirm_column.button(
+            pending["confirm_label"],
+            key=f"confirm_action_{pending['action']}",
+            type="primary",
+            use_container_width=True,
+        ):
+            execute_confirmed_action(pending)
+            st.session_state.pop("pending_confirmation", None)
+            rerun_app()
+
+    dialog = getattr(st, "dialog", None) or getattr(st, "experimental_dialog", None)
+
+    if dialog is not None:
+        @dialog(pending["title"])
+        def confirmation_dialog():
+            render_confirmation_content()
+
+        confirmation_dialog()
+    else:
+        st.warning(f'{pending["title"]} {pending["message"]}')
+        render_confirmation_content()
 
 
 def execute_confirmed_action(pending):
@@ -450,7 +495,9 @@ def show_create_event_form():
 
         ask_confirmation(
             "create_event",
+            "Event erstellen?",
             f'Möchtest du das Event "{event_data["title"]}" wirklich erstellen?',
+            "Erstellen",
             {"event": event_data},
         )
 
@@ -492,7 +539,12 @@ def show_admin_event_actions(event):
             if st.button("➕ Teilnehmer hinzufügen", key=f"add_button_{current_event_id}"):
                 ask_confirmation(
                     "add_participant",
-                    f'Möchtest du {user_to_add.get("name", "diesen Benutzer")} wirklich zu diesem Event hinzufügen?',
+                    "Teilnehmer hinzufügen?",
+                    (
+                        f'Möchtest du {user_to_add.get("name", "diesen Benutzer")} '
+                        f'wirklich zum Event "{event.get("title", "Ohne Titel")}" hinzufügen?'
+                    ),
+                    "Hinzufügen",
                     {
                         "userId": user_id(user_to_add),
                         "eventId": current_event_id,
@@ -515,7 +567,12 @@ def show_admin_event_actions(event):
             if st.button("✕ Teilnehmer entfernen", key=f"remove_button_{current_event_id}"):
                 ask_confirmation(
                     "remove_participant",
-                    f'Möchtest du die Anmeldung von {participant_to_remove.get("name", "diesem Teilnehmer")} wirklich stornieren?',
+                    "Teilnehmer entfernen?",
+                    (
+                        f'Möchtest du {participant_to_remove.get("name", "diesen Teilnehmer")} '
+                        f'wirklich aus dem Event "{event.get("title", "Ohne Titel")}" entfernen?'
+                    ),
+                    "Entfernen",
                     {
                         "userId": user_id(participant_to_remove),
                         "eventId": current_event_id,
@@ -568,7 +625,9 @@ def show_admin_event_actions(event):
 
         ask_confirmation(
             "update_event",
+            "Änderungen speichern?",
             f'Möchtest du die Änderungen am Event "{new_data["title"]}" wirklich speichern?',
+            "Speichern",
             {
                 "eventId": current_event_id,
                 "event": new_data,
@@ -581,7 +640,9 @@ def show_admin_event_actions(event):
     if st.button("🗑 Event löschen", key=f"delete_{current_event_id}"):
         ask_confirmation(
             "delete_event",
+            "Event löschen?",
             f'Möchtest du das Event "{event.get("title", "Ohne Titel")}" wirklich löschen?',
+            "Löschen",
             {"eventId": current_event_id},
         )
 
@@ -636,12 +697,14 @@ def show_user_events(events, current_user):
             show_event_details(event, show_participant_count=False)
 
             if isUserBooked(user_id(current_user), current_event_id):
-                st.success("Du hast dieses Event gebucht.")
+                st.caption("Status: gebucht")
 
                 if st.button("✕ Buchung stornieren", key=f"cancel_{current_event_id}"):
                     ask_confirmation(
                         "cancel_booking",
-                        "Möchtest du diese Buchung wirklich stornieren?",
+                        "Buchung stornieren?",
+                        f'Möchtest du deine Buchung für "{title}" wirklich stornieren?',
+                        "Stornieren",
                         {
                             "userId": user_id(current_user),
                             "eventId": current_event_id,
@@ -653,7 +716,9 @@ def show_user_events(events, current_user):
                 if st.button("🎟 Event buchen", key=f"book_{current_event_id}"):
                     ask_confirmation(
                         "book_event",
+                        "Event buchen?",
                         f'Möchtest du das Event "{title}" wirklich buchen?',
+                        "Buchen",
                         {
                             "userId": user_id(current_user),
                             "eventId": current_event_id,
@@ -691,7 +756,9 @@ def show_user_bookings(current_user):
             if st.button("✕ Buchung stornieren", key=f"my_cancel_{current_event_id}"):
                 ask_confirmation(
                     "cancel_booking",
-                    "Möchtest du diese Buchung wirklich stornieren?",
+                    "Buchung stornieren?",
+                    f'Möchtest du deine Buchung für "{title}" wirklich stornieren?',
+                    "Stornieren",
                     {
                         "userId": user_id(current_user),
                         "eventId": current_event_id,
@@ -709,7 +776,7 @@ def show_sidebar_controls(role):
     st.sidebar.divider()
 
     selected_role = st.sidebar.selectbox(
-        "⚙ Rolle",
+        "👤 Rolle",
         ["ADMIN", "USER"],
         index=0 if role == "ADMIN" else 1,
         key="role_select",
