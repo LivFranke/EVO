@@ -665,15 +665,6 @@ def show_admin_events(events):
         with st.expander(f"📅 {title} | {event_date} | {availability}"):
             show_event_details(event)
 
-            action_column_one, action_column_two, action_column_three = st.columns(3)
-
-            with action_column_one:
-                st.caption("👥 Teilnehmer verwalten")
-            with action_column_two:
-                st.caption("✏ Bearbeiten")
-            with action_column_three:
-                st.caption("🗑 Löschen")
-
             show_admin_event_actions(event)
 
 
