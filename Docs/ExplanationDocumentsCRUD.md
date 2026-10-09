@@ -19,7 +19,7 @@ Beispiel zum Aufbau eines Aufbau eines MongoDB Dokuments unserer DB:
 }
 ```
 
-Dieses Dokument stellt ein Event dar. Es speichert den Titel, die Beschreibung, das Datum, den Veranstaltungsort und die maximale Teilnehmerzahl. Die Ort ist verschachtelt und fasst mehrere Angaben zusammen: zum Beispiel Name, Stadt und Raum.
+Dieses Dokument stellt ein Event dar. Es speichert den Titel, die Beschreibung, das Datum, den Veranstaltungsort und die maximale Teilnehmerzahl. Der Ort ist verschachtelt und fasst mehrere Angaben zusammen: zum Beispiel Name, Stadt und Raum.
 
 ## 3. Umsetzung von CRUD
 
